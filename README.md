@@ -40,6 +40,7 @@ This endpoint can be used for creating new users.
     "password": "password123",
     "password_confirmation": "password123"
 }
+</details>
 ```
 
 <details>
