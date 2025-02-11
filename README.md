@@ -15,7 +15,7 @@
 3. php artisan key:generate
 4. php artisan migrate
 5. php artisan passport:install
-   - Do not run database migrations
+   - Would you like to run all pending database migrations? - yes
    - Do not create personal access and password grant clients
 6. php artisan passport:client --public
    - Which user ID should the client be assigned to? - press enter

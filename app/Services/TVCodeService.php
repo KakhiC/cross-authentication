@@ -152,7 +152,7 @@ class TvCodeService
     /**
      * Cache a generated TV code after its initial generation
      * 
-     * This currently caches data in the db, ideally, we would use redis to cache these to retreive them faster, without needing
+     * This currently caches data in the db, ideally, we would use redis to cache these to retrieve them faster, without needing
      * to open the db connection for every poll request.
      * 
      * @param string $code

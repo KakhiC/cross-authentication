@@ -58,19 +58,20 @@ class ValidateToken
             );
 
             $token = $config->parser()->parse($bearerToken);
+            $tokenClaims = $token->claims();
 
             if ($token->isExpired(new \DateTimeImmutable())) {
                 return response()->json(['message' => 'Token expired'], 401);
             }
 
-            $tokenId = $token->claims()->get('jti');
+            $tokenId = $tokenClaims->get('jti');
             $dbToken = $this->tokenRepository->find($tokenId);
             
-            if (!$dbToken || $dbToken->revoked) {
+            if (!$dbToken || $dbToken->revoked || !in_array('mobile', $tokenClaims->get('scopes'))) {
                 return response()->json(['message' => 'Token invalid or revoked'], 401);
             }
 
-            $user = User::find($token->claims()->get('user_id'));
+            $user = User::find($tokenClaims->get('user_id'));
 
             Auth::setUser($user);
 

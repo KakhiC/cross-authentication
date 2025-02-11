@@ -51,8 +51,6 @@ class TokenService
         private TokenRepository $tokenRepository,
         private RefreshTokenRepository $refreshTokenRepository
     ) {
-        $this->tokenRepository = $tokenRepository;
-        $this->refreshTokenRepository = $refreshTokenRepository;
         $this->config = Configuration::forSymmetricSigner(
             new Sha256(),
             InMemory::file(config('passport.private_key'))
