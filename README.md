@@ -22,3 +22,6 @@
    - Where should we redirect the request.. - press enter
 6. php artisan migrate
 7. php artisan serve
+
+## API Documentation
+API documentation goes here...
