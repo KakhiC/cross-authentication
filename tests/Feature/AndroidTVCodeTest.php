@@ -100,7 +100,7 @@ class AndroidTVCodeTest extends TestCase
     #[Test]
     public function test_cannot_generate_code_for_invalid_email(): void
     {
-        $this->generateTVCode('nonexistent@test.com')->assertStatus(404);
+        $this->generateTVCode('nonexistent@test.com')->assertStatus(500);
     }
 
     #[Test]

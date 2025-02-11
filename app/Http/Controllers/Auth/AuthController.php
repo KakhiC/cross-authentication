@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Auth;
 
 use App\Models\User;
+use App\Services\AuthLoggerService;
 use App\Services\TokenService;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -23,6 +24,21 @@ class AuthController extends Controller
      * @var string
      */
     protected const USER_FIELD_NAME = 'name';
+
+    /**
+     * @var AuthLoggerService
+     */
+    protected AuthLoggerService $authLoggerService;
+
+    /**
+     * AuthController Constructor.
+     * 
+     * @param AuthLoggerService $authLoggerService
+     */
+    public function __construct(AuthLoggerService $authLoggerService)
+    {
+        $this->authLoggerService = $authLoggerService;
+    }
 
     /**
      * Create a new user account
@@ -51,15 +67,9 @@ class AuthController extends Controller
                 status: 200
             );
         } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
+            return $this->authLoggerService->handleException($e, 'validation', 'Validation failed');
         } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Registration failed',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->authLoggerService->handleException($e, 'registration', 'Registration failed');
         }
     }
 
@@ -95,10 +105,7 @@ class AuthController extends Controller
                 ]
             ]);
         } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Login failed',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->authLoggerService->handleException($e, 'login', 'Login failed');
         }
     }
 
@@ -124,10 +131,7 @@ class AuthController extends Controller
                 ]
             ]);
         } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Token refresh failed',
-                'error' => $e->getMessage()
-            ], 401);
+            return $this->authLoggerService->handleException($e, 'token refresh', 'Token refresh failed');
         }
     }
 }

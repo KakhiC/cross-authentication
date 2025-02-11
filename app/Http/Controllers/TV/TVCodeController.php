@@ -4,6 +4,7 @@ declare(strict_types= 1);
 
 namespace App\Http\Controllers\TV;
 
+use App\Services\AuthLoggerService;
 use App\Services\TvCodeService;
 use Exception;
 use Illuminate\Http\JsonResponse;
@@ -35,14 +36,22 @@ class TVCodeController extends Controller
     private TvCodeService $tvCodeService;
 
     /**
+     * @var AuthLoggerService
+     */
+    protected AuthLoggerService $authLoggerService;
+
+    /**
      * TVCodeController Constructor.
      * 
      * @param TvCodeService $tvCodeService
+     * @param AuthLoggerService $authLoggerService
      */
     public function __construct(
-        TvCodeService $tvCodeService
+        TvCodeService $tvCodeService,
+        AuthLoggerService $authLoggerService
     ) {
         $this->tvCodeService = $tvCodeService;
+        $this->authLoggerService = $authLoggerService;
     }
 
     /**
@@ -65,7 +74,7 @@ class TVCodeController extends Controller
         } catch (ValidationException $e) {
             return $this->handleValidationError($e);
         } catch (Exception $e) {
-            return $this->handleException($e, 'Failed to generate TV code');
+            return $this->authLoggerService->handleException($e, 'code generation', 'Failed to generate TV code');
         }
     }
 
@@ -89,7 +98,7 @@ class TVCodeController extends Controller
         } catch (ValidationException $e) {
             return $this->handleValidationError($e);
         } catch (Exception $e) {
-            return $this->handleException($e, 'Failed to check code status');
+            return $this->authLoggerService->handleException($e, 'code status check', 'Failed to check code status');
         }
     }
 
@@ -117,38 +126,19 @@ class TVCodeController extends Controller
         } catch (ValidationException $e) {
             return $this->handleValidationError($e);
         } catch (Exception $e) {
-            return $this->handleException($e, 'Failed to activate TV code');
+            return $this->authLoggerService->handleException($e, 'code activation', 'Failed to activate TV code');
         }
     }
 
     /**
-     * Handles exceptions
+     * Handles validation exceptions
      * 
      * @param Exception $e
-     * @param string $message
-     * 
-     * @return JsonResponse
-     */
-    private function handleException(Exception $e, string $message): JsonResponse
-    {
-        return response()->json([
-            'message' => $message,
-            'error' => $e->getMessage()
-        ], 500);
-    }
-
-    /**
-     * Handles validation errors
-     * 
-     * @param ValidationException $e
      * 
      * @return JsonResponse
      */
     private function handleValidationError(ValidationException $e): JsonResponse
     {
-        return response()->json([
-            'message' => 'Validation failed',
-            'errors' => $e->errors()
-        ], 422);
+        return $this->authLoggerService->handleException($e, 'validation', 'Validation failed');
     }
 }
