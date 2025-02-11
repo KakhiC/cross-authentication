@@ -20,10 +20,14 @@ return new class extends Migration
     {
         Schema::create('android_tv_codes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->unique()->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->string('one_time_code', 6)->unique();
-            $table->timestamp('expires_at')->index();
+            $table->boolean('activated')->default(false);
+            $table->timestamp('expires_at');
             $table->timestamps();
+
+            $table->index(['user_id', 'activated', 'expires_at']);
+            $table->index(['one_time_code', 'activated', 'expires_at']);
         });
     }
 

@@ -61,7 +61,10 @@ class TvCodeService
         $code = $this->createUniqueCode();
         
         $tvCode = AndroidTvCode::updateOrCreate(
-            ['user_id' => $user->id],
+            [
+                'user_id' => $user->id,
+                'activated' => false
+            ],
             [
                 'one_time_code' => $code,
                 'expires_at' => now()->addMinutes(self::CODE_EXPIRY_MINUTES),
@@ -85,7 +88,7 @@ class TvCodeService
      */
     public function pollCode(string $code): array
     {
-        $codeData = $this->getCodeFromCache($code);
+        $codeData = $this->getCode($code);
         $codeStatus = (bool) $codeData['activated'];
         $userId = $codeData['user_id'];
         
@@ -118,7 +121,7 @@ class TvCodeService
      */
     public function activateCode(string $code, int $userId): array
     {
-        $codeData = $this->getCodeFromCache($code);
+        $codeData = $this->getCode($code);
 
         if ($codeData['user_id'] !== $userId) {
             throw new InvalidArgumentException('Code does not belong to the authenticated user');
@@ -149,6 +152,9 @@ class TvCodeService
     /**
      * Cache a generated TV code after its initial generation
      * 
+     * This currently caches data in the db, ideally, we would use redis to cache these to retreive them faster, without needing
+     * to open the db connection for every poll request.
+     * 
      * @param string $code
      * @param User $user
      * @param AndroidTvCode $tvCode
@@ -176,15 +182,29 @@ class TvCodeService
      * @throws InvalidArgumentException
      * @return array
      */
-    private function getCodeFromCache(string $code): array
+    private function getCode(string $code): array
     {
         $codeData = Cache::get(self::CACHE_KEY_PREFIX . $code);
         
-        if (!$codeData) {
+        if ($codeData) {
+            return $codeData;
+        }
+
+        $tvCode = AndroidTvCode::where('one_time_code', $code)
+            ->where('expires_at', '>', now())
+            ->first();
+
+        if (!$tvCode) {
             throw new InvalidArgumentException('Code not found or expired');
         }
 
-        return $codeData;
+        $this->cacheCode($code, User::findOrFail($tvCode->user_id), $tvCode);
+
+        return [
+            'user_id' => $tvCode->user_id,
+            'activated' => (bool)$tvCode->activated,
+            'expires_at' => $tvCode->expires_at->timestamp
+        ];
     }
 
     /**
@@ -219,8 +239,10 @@ class TvCodeService
     {
         Cache::forget(self::CACHE_KEY_PREFIX . $code);
 
-        AndroidTvCode::where('user_id', $userId)
-            ->where('one_time_code', $code)
-            ->delete();
+        AndroidTvCode::where([
+            'user_id' => $userId,
+            'one_time_code' => $code,
+            'activated' => false
+        ])->delete();
     }
 }

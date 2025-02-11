@@ -26,7 +26,8 @@ class AndroidTvCode extends Model
     protected $fillable = [
         'user_id',
         'one_time_code',
-        'expires_at'
+        'expires_at',
+        'activated',
     ];
 
     /**
