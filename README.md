@@ -13,14 +13,14 @@
 2. npm i
 4. copy env.example -> env
 3. php artisan key:generate
-4. php artisan passport:install
+4. php artisan migrate
+5. php artisan passport:install
    - Do not run database migrations
    - Do not create personal access and password grant clients
-5. php artisan passport:client --public
+6. php artisan passport:client --public
    - Which user ID should the client be assigned to? - press enter
    - What should we name the client? - cross-authentication
    - Where should we redirect the request.. - press enter
-6. php artisan migrate
 7. php artisan serve
 
 ## Available API endpoints and Documentation
