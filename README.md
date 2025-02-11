@@ -28,3 +28,25 @@
 ```http
 POST /api/register
 ```
+
+This endpoint can be used for creating new users.
+
+<details>
+<summary>Expected Payload:</summary>
+```json
+{
+    "name": "Test",
+    "email": "Test@testing.com",
+    "password": "password123",
+    "password_confirmation": "password123"
+}
+```
+
+<details>
+<summary>Success Response</summary>
+```json
+{
+    "message": "User Test successfully created"
+}
+```
+</details>
