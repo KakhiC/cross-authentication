@@ -91,12 +91,14 @@ class TvCodeService
         
         $response = [
             'activated' => $codeStatus,
-            'expires_at' => date('Y-m-d H:i:s', $codeData['expires_at'])
+            'data' => [
+                'expires_at' => date('Y-m-d H:i:s', $codeData['expires_at'])
+            ]
         ];
 
         if ($codeStatus) {
             $user = User::findOrFail($userId);
-            $response['token'] = $this->tokenService->issueTokensForUser($user, ['tv']);
+            $response['data']['token'] = $this->tokenService->issueTokensForUser($user, ['tv']);
 
             $this->dropUsedTVCode($code, $userId);
         }

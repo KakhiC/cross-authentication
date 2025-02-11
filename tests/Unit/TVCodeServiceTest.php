@@ -9,7 +9,7 @@ use App\Models\User;
 use App\Services\TokenService;
 use App\Services\TvCodeService;
 use Carbon\Carbon;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 use Tests\TestCase;
@@ -21,7 +21,7 @@ use Tests\TestCase;
  */
 class TVCodeServiceTest extends TestCase
 {
-    use RefreshDatabase;
+    use DatabaseTransactions;
 
     /**
      * @var TvCodeService
@@ -39,6 +39,11 @@ class TVCodeServiceTest extends TestCase
     private TokenService $tokenService;
 
     /**
+     * @var array
+     */
+    private array $createdCodes = [];
+
+    /**
      * Test setup
      * 
      * @return void
@@ -50,6 +55,20 @@ class TVCodeServiceTest extends TestCase
         $this->tokenService = $this->mock(TokenService::class);
         $this->tvCodeService = new TvCodeService($this->tokenService);
         $this->user = User::factory()->create();
+    }
+
+    /**
+     * Test teardown
+     * 
+     * @return void
+     */
+    protected function tearDown(): void
+    {        
+        foreach ($this->createdCodes as $code) {
+            Cache::forget('tv_code:' . $code);
+        }
+        
+        parent::tearDown();
     }
 
     /**
@@ -66,6 +85,7 @@ class TVCodeServiceTest extends TestCase
             ->create(['expires_at' => $expires ?? Carbon::now()->addMinutes(10)]);
 
         $this->cacheCode($tvCode, $status);
+        $this->createdCodes[] = $tvCode->one_time_code;
 
         return $tvCode->one_time_code;
     }
@@ -127,8 +147,8 @@ class TVCodeServiceTest extends TestCase
         $result = $this->tvCodeService->pollCode($code);
     
         $this->assertFalse($result['activated']);
-        $this->assertArrayHasKey('expires_at', $result);
-        $this->assertArrayNotHasKey('token', $result);
+        $this->assertArrayHasKey('expires_at', $result['data']);
+        $this->assertArrayNotHasKey('token', $result['data']);
         
         $this->assertDatabaseHas('android_tv_codes', [
             'one_time_code' => $code
@@ -184,8 +204,8 @@ class TVCodeServiceTest extends TestCase
         $result = $this->tvCodeService->pollCode($code);
 
         $this->assertTrue($result['activated']);
-        $this->assertArrayHasKey('token', $result);
-        $this->assertEquals(['access_token' => 'test_token'], $result['token']);
+        $this->assertArrayHasKey('token', $result['data']);
+        $this->assertEquals(['access_token' => 'test_token'], $result['data']['token']);
         $this->assertDatabaseMissing('android_tv_codes', [
             'one_time_code' => $code
         ]);
