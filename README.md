@@ -9,7 +9,7 @@
 
 ## Local Setup
 1. composer install
- -- make sure sodium ext is enabled in php.ini
+   - make sure sodium ext is enabled in php.ini
 2. npm i
 4. copy env.example -> env
 3. php artisan key:generate
@@ -23,5 +23,8 @@
 6. php artisan migrate
 7. php artisan serve
 
-## API Documentation
-API documentation goes here...
+## Available API endpoints and Documentation
+
+```http
+POST /api/register
+```
