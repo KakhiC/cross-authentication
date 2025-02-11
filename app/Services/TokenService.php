@@ -81,7 +81,7 @@ class TokenService
         ];
     }
 
-        /**
+    /**
      * Entry point for checking and revoking old tokens and generating new ones
      * 
      * @param string $refreshToken

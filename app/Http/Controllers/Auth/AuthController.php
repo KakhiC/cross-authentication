@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\TokenService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Class AuthController - handles user registration and login
+ * Class AuthController - handles user registration, login, and token refresh requests
  * 
  * @package App\Http\Controllers\UserAuth
  */
@@ -58,7 +58,6 @@ class AuthController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'message' => 'Registration failed',
-                // TO-DO: log the error from here as its not a validation error
                 'error' => $e->getMessage()
             ], 500);
         }

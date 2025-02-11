@@ -90,6 +90,7 @@ class TvCodeService
         $userId = $codeData['user_id'];
         
         $response = [
+            'code' => $code,
             'activated' => $codeStatus,
             'data' => [
                 'expires_at' => date('Y-m-d H:i:s', $codeData['expires_at'])
@@ -113,7 +114,7 @@ class TvCodeService
      * @param int $userId
      * 
      * @throws InvalidArgumentException
-     * @return array{activated: bool, expires_at: string}
+     * @return array
      */
     public function activateCode(string $code, int $userId): array
     {

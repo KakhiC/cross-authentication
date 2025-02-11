@@ -4,11 +4,11 @@ declare(strict_types= 1);
 
 namespace App\Http\Controllers\TV;
 
-use App\Http\Controllers\Controller;
 use App\Services\TvCodeService;
 use Exception;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 
@@ -62,17 +62,10 @@ class TVCodeController extends Controller
             $result = $this->tvCodeService->generateCode($request->email);
 
             return response()->json(['data' => $result], 201);
-
         } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
+            return $this->handleValidationError($e);
         } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Failed to generate TV code',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->handleException($e, 'Failed to generate TV code');
         }
     }
 
@@ -93,17 +86,10 @@ class TVCodeController extends Controller
             $result = $this->tvCodeService->pollCode($request->input('code'));
 
             return response()->json(['data' => $result]);
-
         } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
+            return $this->handleValidationError($e);
         } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Failed to check code status',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->handleException($e, 'Failed to check code status');
         }
     }
 
@@ -121,26 +107,48 @@ class TVCodeController extends Controller
                 'code' => 'required|string|size:6'
             ]);
 
-            $result = $this->tvCodeService->activateCode(
-                $request->input('code'), 
-                Auth::id()
-            );
-
             return response()->json([
                 'message' => 'TV code activated successfully',
-                'data' => $result
+                'data' => $this->tvCodeService->activateCode(
+                    $request->input('code'), 
+                    Auth::id()
+                )
             ]);
-
         } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Validation failed',
-                'errors' => $e->errors()
-            ], 422);
+            return $this->handleValidationError($e);
         } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Failed to activate TV code',
-                'error' => $e->getMessage()
-            ], 500);
+            return $this->handleException($e, 'Failed to activate TV code');
         }
+    }
+
+    /**
+     * Handles exceptions
+     * 
+     * @param Exception $e
+     * @param string $message
+     * 
+     * @return JsonResponse
+     */
+    private function handleException(Exception $e, string $message): JsonResponse
+    {
+        return response()->json([
+            'message' => $message,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+
+    /**
+     * Handles validation errors
+     * 
+     * @param ValidationException $e
+     * 
+     * @return JsonResponse
+     */
+    private function handleValidationError(ValidationException $e): JsonResponse
+    {
+        return response()->json([
+            'message' => 'Validation failed',
+            'errors' => $e->errors()
+        ], 422);
     }
 }
