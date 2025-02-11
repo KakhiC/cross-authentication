@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
+use App\Services\TokenService;
 
 /**
  * Class TvCodeService
@@ -25,11 +26,27 @@ class TvCodeService
     private const CACHE_KEY_PREFIX = 'tv_code:';
 
     /**
+     * @var TokenService
+     */
+    private TokenService $tokenService;
+
+    /**
      * TV Code expiration time
      * 
      * @var int
      */
     private const CODE_EXPIRY_MINUTES = 10;
+
+    /**
+     * TvCodeService Constructor.
+     * 
+     * @param TokenService $tokenService
+     */
+    public function __construct(
+        TokenService $tokenService
+    ) {
+        $this->tokenService = $tokenService;
+    }
 
     /**
      * Generate a code and associate it with an existing user
@@ -79,7 +96,7 @@ class TvCodeService
 
         if ($codeStatus) {
             $user = User::findOrFail($userId);
-            $response['token'] = app(TokenService::class)->issueTokensForUser($user, ['tv']);
+            $response['token'] = $this->tokenService->issueTokensForUser($user, ['tv']);
 
             $this->dropUsedTVCode($code, $userId);
         }
